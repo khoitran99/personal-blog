@@ -3,9 +3,10 @@ import { api, type Blog } from '../api';
 import { Link } from 'react-router-dom';
 
 export function Admin() {
-  const [secret, setSecret] = useState(localStorage.getItem('admin_secret') || '');
+  const initialSecret = localStorage.getItem('admin_secret') || '';
+  const [secret, setSecret] = useState(initialSecret);
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [authorized, setAuthorized] = useState(false);
+  const [authorized, setAuthorized] = useState(!!initialSecret);
 
   useEffect(() => {
     if (secret) {
@@ -13,13 +14,13 @@ export function Admin() {
         .getBlogs()
         .then(setBlogs)
         .catch(() => setAuthorized(false));
-      setAuthorized(true);
     }
   }, [secret]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const input = (e.target as any).secret.value;
+    const formData = new FormData(e.currentTarget);
+    const input = formData.get('secret') as string;
     localStorage.setItem('admin_secret', input);
     setSecret(input);
     setAuthorized(true);

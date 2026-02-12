@@ -59,8 +59,9 @@ export function Editor() {
         await api.createBlog(dataToSubmit, secret);
       }
       navigate('/admin');
-    } catch (err: any) {
-      alert('Error: ' + err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      alert('Error: ' + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -126,7 +127,9 @@ export function Editor() {
           <label className="text-sm font-medium leading-none">Status</label>
           <select
             value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+            onChange={(e) =>
+              setFormData({ ...formData, status: e.target.value as 'DRAFT' | 'PUBLISHED' })
+            }
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="DRAFT">Draft</option>

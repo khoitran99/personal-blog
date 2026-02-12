@@ -102,10 +102,11 @@ export class BlogService {
     };
 
     Object.keys(updateBlogDto).forEach((key) => {
-      if (updateBlogDto[key] !== undefined) {
+      const typedKey = key as keyof UpdateBlogDto;
+      if (updateBlogDto[typedKey] !== undefined) {
         updateExpressions.push(`#${key} = :${key}`);
         expressionAttributeNames[`#${key}`] = key;
-        expressionAttributeValues[`:${key}`] = updateBlogDto[key];
+        expressionAttributeValues[`:${key}`] = updateBlogDto[typedKey];
       }
     });
 

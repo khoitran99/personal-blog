@@ -1,0 +1,41 @@
+# OS
+.DS_Store
+.check
+.classpath
+.project
+.settings/
+
+# Node
+node_modules/
+dist/
+coverage/
+.npm/
+
+# Environment
+.env
+.env.local
+.env.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+
+# AWS
+.aws/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archives
+*.zip
+

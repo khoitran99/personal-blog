@@ -1,0 +1,58 @@
+name: Backend CI
+
+on:
+  push:
+    branches: ['master', 'main']
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: ['master', 'main']
+    paths:
+      - 'backend/**'
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run test
+
+      - name: Create Deployment Artifact
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        run: |
+          npm prune --production
+          zip -r backend.zip dist node_modules package.json
+
+      - name: Deploy to Lambda
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          LAMBDA_FUNCTION_NAME: ${{ secrets.BACKEND_FUNCTION_NAME }}
+        run: |
+          aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --zip-file fileb://backend.zip

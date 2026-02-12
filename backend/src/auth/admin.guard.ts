@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import {
   Injectable,
   CanActivate,
@@ -11,7 +12,7 @@ export class AdminGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const adminSecret = process.env.ADMIN_SECRET;
     const providedSecret = request.headers['x-admin-secret'];
 
