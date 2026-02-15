@@ -1,101 +1,140 @@
 import { useEffect, useState } from 'react';
 import { api, type Blog } from '../api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { PageTransition } from '@/components/PageTransition';
+import { PlusCircle, Pencil, Trash2, ExternalLink } from 'lucide-react';
 
 export function Admin() {
-  const initialSecret = localStorage.getItem('admin_secret') || '';
-  const [secret, setSecret] = useState(initialSecret);
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [authorized, setAuthorized] = useState(!!initialSecret);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (secret) {
-      api
-        .getBlogs()
-        .then(setBlogs)
-        .catch(() => setAuthorized(false));
+    const token = api.getToken();
+    if (!token) {
+      navigate('/login');
+      return;
     }
-  }, [secret]);
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const input = formData.get('secret') as string;
-    localStorage.setItem('admin_secret', input);
-    setSecret(input);
-    setAuthorized(true);
-  };
+    api
+      .getBlogs()
+      .then(setBlogs)
+      .catch((err) => {
+        console.error(err);
+        // If fetch fails (e.g. 401), maybe token expired
+        navigate('/login');
+      });
+  }, [navigate]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure?')) return;
     try {
-      await api.deleteBlog(id, secret);
+      await api.deleteBlog(id);
       setBlogs(blogs.filter((b) => b.id !== id));
     } catch (err) {
       alert('Failed to delete: ' + err);
     }
   };
 
-  if (!authorized) {
-    return (
-      <div className="max-w-md mx-auto py-20">
-        <form onSubmit={handleLogin} className="space-y-4 border p-6 rounded-lg bg-card">
-          <h1 className="text-2xl font-bold">Admin Access</h1>
-          <input
-            name="secret"
-            type="password"
-            placeholder="Enter Admin Secret"
-            className="w-full p-2 border rounded bg-background"
-          />
-          <button
-            type="submit"
-            className="w-full bg-primary text-primary-foreground p-2 rounded hover:bg-primary/90 font-medium"
-          >
-            Login
-          </button>
-        </form>
-      </div>
-    );
-  }
+  const handleLogout = () => {
+    api.logout();
+    navigate('/login');
+  };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <Link
-          to="/admin/new"
-          className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 font-medium transition-colors"
-        >
-          Create New Post
-        </Link>
-      </div>
-      <div className="space-y-4">
-        {blogs.map((blog) => (
-          <div
-            key={blog.id}
-            className="flex justify-between items-center p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors"
-          >
-            <span className="font-medium truncate flex-1 pr-4">{blog.title}</span>
-            <div className="space-x-4 shrink-0">
-              <Link
-                to={`/admin/edit/${blog.id}`}
-                className="text-primary hover:underline font-medium"
-              >
-                Edit
-              </Link>
-              <button
-                onClick={() => handleDelete(blog.id)}
-                className="text-destructive hover:underline font-medium"
-              >
-                Delete
-              </button>
-            </div>
+    <PageTransition>
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">Manage your blog posts.</p>
           </div>
-        ))}
-        {blogs.length === 0 && (
-          <div className="text-center text-muted-foreground py-10">No posts. Create one!</div>
-        )}
+          <div className="flex gap-4">
+            <Button variant="outline" onClick={handleLogout}>
+              Logout
+            </Button>
+            <Button asChild>
+              <Link to="/admin/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                New Post
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {blogs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    No results.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                blogs.map((blog) => (
+                  <TableRow key={blog.id}>
+                    <TableCell className="font-medium">
+                      <Link
+                        to={`/blog/${blog.id}`}
+                        className="hover:underline flex items-center gap-2"
+                      >
+                        {blog.title}
+                        <ExternalLink className="h-3 w-3 opacity-50" />
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          blog.status === 'PUBLISHED'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-secondary-foreground'
+                        }`}
+                      >
+                        {blog.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>{new Date(blog.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button variant="ghost" size="icon" asChild>
+                        <Link to={`/admin/edit/${blog.id}`}>
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(blog.id)}
+                        className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Delete</span>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }

@@ -1,34 +1,55 @@
 import { Link } from 'react-router-dom';
 import type { Blog } from '../api';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+
+// Let's stick to standard HTML/Tailwind for tags for now if Badge isn't created.
+// Actually, I should probably create a Badge component as per ShadCN.
 
 export function BlogCard({ blog }: { blog: Blog }) {
   return (
-    <article className="group relative flex flex-col space-y-2 border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors">
-      {blog.coverImage && (
-        <div className="aspect-video w-full overflow-hidden rounded-md bg-muted">
-          <img
-            src={blog.coverImage}
-            alt={blog.title}
-            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-          />
-        </div>
-      )}
-      <div className="flex flex-col space-y-1">
-        <h2 className="text-2xl font-bold tracking-tight">{blog.title}</h2>
-        <div className="flex gap-2 text-sm text-muted-foreground">
-          <span>{new Date(blog.createdAt).toLocaleDateString()}</span>
-          {blog.tags && blog.tags.length > 0 && (
-            <>
-              <span>•</span>
-              <span>{blog.tags.join(', ')}</span>
-            </>
-          )}
-        </div>
-      </div>
-      <p className="text-muted-foreground line-clamp-3">{blog.content}</p>
-      <Link to={`/blog/${blog.id}`} className="absolute inset-0">
-        <span className="sr-only">Read more</span>
-      </Link>
-    </article>
+    <Link to={`/blog/${blog.id}`}>
+      <Card className="h-full overflow-hidden transition-all hover:bg-muted/50 hover:shadow-md border-border/40 group">
+        {blog.coverImage && (
+          <div className="aspect-video w-full overflow-hidden border-b border-border/40">
+            <img
+              src={blog.coverImage}
+              alt={blog.title}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          </div>
+        )}
+        <CardHeader className="space-y-2 p-6">
+          <div className="flex gap-2 text-xs text-muted-foreground uppercase tracking-wider">
+            <time dateTime={blog.createdAt}>
+              {new Date(blog.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </time>
+          </div>
+          <CardTitle className="text-xl font-bold leading-tight group-hover:underline decoration-2 underline-offset-4">
+            {blog.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 pt-0">
+          <p className="line-clamp-3 text-muted-foreground leading-relaxed">
+            {blog.content.slice(0, 150)}...
+          </p>
+        </CardContent>
+        {blog.tags && blog.tags.length > 0 && (
+          <CardFooter className="p-6 pt-0 flex flex-wrap gap-2">
+            {blog.tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                {tag}
+              </span>
+            ))}
+          </CardFooter>
+        )}
+      </Card>
+    </Link>
   );
 }

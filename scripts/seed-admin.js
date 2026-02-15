@@ -1,0 +1,46 @@
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const bcrypt = require('bcrypt');
+
+const client = new DynamoDBClient({
+  endpoint: process.env.DYNAMODB_ENDPOINT || 'http://localhost:8000',
+  region: process.env.AWS_REGION || 'ap-southeast-1',
+  credentials: {
+    accessKeyId: 'local',
+    secretAccessKey: 'local',
+  },
+});
+
+const docClient = DynamoDBDocumentClient.from(client);
+
+async function seedAdmin() {
+  const email = 'admin@example.com';
+  const password = 'admin123';
+  const name = 'Admin User';
+
+  console.log(`Seeding admin user: ${email}`);
+
+  const salt = await bcrypt.genSalt();
+  const passwordHash = await bcrypt.hash(password, salt);
+
+  const user = {
+    email,
+    passwordHash,
+    name,
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    await docClient.send(
+      new PutCommand({
+        TableName: 'Users',
+        Item: user,
+      }),
+    );
+    console.log('Admin user seeded successfully!');
+  } catch (err) {
+    console.error('Error seeding admin user:', err);
+  }
+}
+
+seedAdmin();

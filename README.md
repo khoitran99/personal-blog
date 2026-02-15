@@ -91,17 +91,82 @@ sequenceDiagram
 
 ### 1. Backend Setup
 
+1.  Navigate to `backend` directory:
+
+    ```bash
+    cd backend
+    ```
+
+2.  Create a `.env` file with the following content:
+
+    ```env
+    AWS_REGION=ap-southeast-1
+    DYNAMODB_ENDPOINT=http://localhost:8000
+    BLOG_TABLE_NAME=Blogs
+    AWS_ACCESS_KEY_ID=local
+    AWS_SECRET_ACCESS_KEY=local
+    ADMIN_SECRET=local-development-secret
+    ```
+
+3.  Install dependencies:
+
+    ```bash
+    npm install
+    ```
+
+4.  Run locally in development mode:
+
+    ```bash
+    # Ensure Docker is running
+    docker-compose up -d
+    ./scripts/setup-local-db.sh
+
+    # Access Local Database GUI
+    # Open http://localhost:8001 in your browser
+
+    npm run start:dev
+    ```
+
+---
+
+## 🧪 Testing
+
+### 1. Automated Tests (Backend)
+
+The backend includes both Unit and End-to-End (e2e) tests.
+
 ```bash
 cd backend
-npm install
 
-# Create a .env file
-echo "ADMIN_SECRET=your_secret_key" > .env
-echo "AWS_REGION=ap-southeast-1" >> .env
-# Add other necessary env vars
+# Run Unit Tests
+npm run test
 
-# Run locally in development mode
-npm run start:dev
+# Run E2E Tests
+# Ensure your local DynamoDB is running first!
+npm run test:e2e
+```
+
+### 2. Manual API Testing (cURL / Postman)
+
+You can test the running local API at `http://localhost:3000`.
+
+**Create a Blog Post:**
+
+```bash
+curl -X POST http://localhost:3000/blogs \
+  -H "Content-Type: application/json" \
+  -H "x-admin-secret: your_secret_key" \
+  -d '{
+    "title": "My First Post",
+    "content": "Hello World!",
+    "status": "PUBLISHED"
+  }'
+```
+
+**Get All Blogs:**
+
+```bash
+curl http://localhost:3000/blogs
 ```
 
 ### 2. Frontend Setup

@@ -10,6 +10,7 @@ export class DynamoDBService {
   constructor() {
     this.rawClient = new DynamoDBClient({
       region: process.env.AWS_REGION || 'ap-southeast-1',
+      endpoint: process.env.DYNAMODB_ENDPOINT,
     });
     this.client = DynamoDBDocumentClient.from(this.rawClient);
   }
