@@ -4,6 +4,8 @@ import { BlogCard } from '../components/BlogCard';
 import { PageTransition } from '@/components/PageTransition';
 import { motion } from 'framer-motion';
 
+import { SEO } from '@/components/SEO';
+
 const container = {
   hidden: { opacity: 0 },
   show: {
@@ -28,7 +30,11 @@ export function Home() {
     api
       .getBlogs()
       .then((data) => {
-        setBlogs(data.filter((b) => b.status === 'PUBLISHED' || true));
+        setBlogs(
+          data
+            .filter((b) => b.status === 'PUBLISHED')
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+        );
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -50,13 +56,15 @@ export function Home() {
 
   return (
     <PageTransition>
+      <SEO title="Home" />
       <div className="space-y-12">
         <div className="space-y-4 text-center max-w-2xl mx-auto">
           <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl">
-            Thoughts & Ideas
+            Khoi Tran
           </h1>
           <p className="text-xl text-muted-foreground">
-            A minimalist collection of writings on technology, design, and life.
+            Hi, I'm a software engineer passionate about technology. This is where I share my
+            thoughts, experiments, and everything in between.
           </p>
         </div>
 

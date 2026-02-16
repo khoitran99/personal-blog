@@ -4,9 +4,11 @@ import { api, type CreateBlogDto } from '../api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import { PageTransition } from '@/components/PageTransition';
 import { Save, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { SEO } from '@/components/SEO';
 // Wait, I haven't created Select component yet. I should stick to native select or create it.
 // To save time and complexity for now, I will use native select styled with Tailwind or just create Select.
 // Actually ShadCN Select is quite complex to copy-paste in one go without the registry.
@@ -66,14 +68,27 @@ export function Editor() {
       const dataToSubmit = { ...formData, coverImage };
 
       if (id) {
-        await api.updateBlog(id, dataToSubmit);
+        toast.promise(api.updateBlog(id, dataToSubmit), {
+          loading: 'Updating post...',
+          success: () => {
+            navigate('/admin');
+            return 'Post updated successfully';
+          },
+          error: (err) => err.message || 'Failed to update post',
+        });
       } else {
-        await api.createBlog(dataToSubmit);
+        toast.promise(api.createBlog(dataToSubmit), {
+          loading: 'Creating post...',
+          success: () => {
+            navigate('/admin');
+            return 'Post created successfully';
+          },
+          error: (err) => err.message || 'Failed to create post',
+        });
       }
-      navigate('/admin');
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      alert('Error: ' + errorMessage);
+      // Toast handles error in promise usually, but if outside:
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -85,6 +100,7 @@ export function Editor() {
 
   return (
     <PageTransition>
+      <SEO title={id ? 'Edit Post' : 'New Post'} />
       <div className="max-w-3xl mx-auto space-y-8 pb-20">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -102,6 +118,40 @@ export function Editor() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-4">
+            {/* Cover Image Section - Moved to Top */}
+            <div className="space-y-2">
+              <Label htmlFor="cover">Cover Image</Label>
+              <Input
+                id="cover"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file && !file.type.startsWith('image/')) {
+                    toast.error('Please upload an image file');
+                    e.target.value = ''; // Reset input
+                    setFile(null);
+                    return;
+                  }
+                  setFile(file || null);
+                }}
+                className="cursor-pointer"
+              />
+              {(formData.coverImage || file) && (
+                <div className="mt-2 aspect-video w-full rounded-md border overflow-hidden bg-muted relative">
+                  <img
+                    src={
+                      JSON.stringify(file) !== 'null' && file
+                        ? URL.createObjectURL(file)
+                        : formData.coverImage
+                    }
+                    className="absolute inset-0 w-full h-full object-cover"
+                    alt="Cover preview"
+                  />
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -161,38 +211,11 @@ export function Editor() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="content">Content (Markdown)</Label>
-              <Textarea
-                id="content"
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                className="min-h-[400px] font-mono text-sm"
-                placeholder="# Write something..."
-                required
+              <Label>Content</Label>
+              <RichTextEditor
+                content={formData.content}
+                onChange={(content) => setFormData({ ...formData, content })}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="cover">Cover Image</Label>
-              <Input
-                id="cover"
-                type="file"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="cursor-pointer"
-              />
-              {(formData.coverImage || file) && (
-                <div className="mt-2 aspect-video w-full max-w-sm rounded-md border overflow-hidden bg-muted">
-                  <img
-                    src={
-                      JSON.stringify(file) !== 'null' && file
-                        ? URL.createObjectURL(file)
-                        : formData.coverImage
-                    }
-                    className="w-full h-full object-cover"
-                    alt="Cover preview"
-                  />
-                </div>
-              )}
             </div>
           </div>
 

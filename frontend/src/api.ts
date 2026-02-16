@@ -19,6 +19,25 @@ export interface CreateBlogDto {
   status?: 'DRAFT' | 'PUBLISHED';
 }
 
+const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('access_token');
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  } as HeadersInit;
+
+  const res = await fetch(url, { ...options, headers });
+
+  if (res.status === 401) {
+    api.logout();
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+
+  return res;
+};
+
 export const api = {
   login: async (email: string, password: string): Promise<void> => {
     const res = await fetch(`${API_URL}/auth/login`, {
@@ -53,13 +72,8 @@ export const api = {
   },
 
   createBlog: async (data: CreateBlogDto): Promise<Blog> => {
-    const token = localStorage.getItem('access_token');
-    const res = await fetch(`${API_URL}/blogs`, {
+    const res = await fetchWithAuth(`${API_URL}/blogs`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Failed to create blog');
@@ -67,13 +81,8 @@ export const api = {
   },
 
   updateBlog: async (id: string, data: Partial<CreateBlogDto>): Promise<Blog> => {
-    const token = localStorage.getItem('access_token');
-    const res = await fetch(`${API_URL}/blogs/${id}`, {
+    const res = await fetchWithAuth(`${API_URL}/blogs/${id}`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Failed to update blog');
@@ -81,35 +90,29 @@ export const api = {
   },
 
   deleteBlog: async (id: string): Promise<void> => {
-    const token = localStorage.getItem('access_token');
-    const res = await fetch(`${API_URL}/blogs/${id}`, {
+    const res = await fetchWithAuth(`${API_URL}/blogs/${id}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     });
     if (!res.ok) throw new Error('Failed to delete blog');
   },
 
   uploadImage: async (file: File): Promise<string> => {
-    const token = localStorage.getItem('access_token');
     // 1. Get presigned URL
-    const presignRes = await fetch(`${API_URL}/upload/presigned-url`, {
+    const contentType = file.type || 'application/octet-stream';
+    const presignRes = await fetchWithAuth(`${API_URL}/upload/presigned-url`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ contentType: file.type }),
+      body: JSON.stringify({ contentType }),
     });
+
     if (!presignRes.ok) throw new Error('Failed to get upload URL');
     const { url, publicUrl } = await presignRes.json();
 
-    // 2. Upload to S3
+    // 2. Upload to S3 (Direct upload, no auth header needed for S3 presigned URL itself usually, but check requirements. usually standard fetch is fine)
+    // The previous implementation used standard fetch for S3 upload, preserving that.
     const uploadRes = await fetch(url, {
       method: 'PUT',
       headers: {
-        'Content-Type': file.type,
+        'Content-Type': contentType,
       },
       body: file,
     });

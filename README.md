@@ -1,83 +1,42 @@
-# Personal Blog Platform
+# 🚀 Personal Blog Platform (Khoi Tran)
 
-> A Serverless Full-Stack Blog Platform built with React, NestJS, and AWS.
+> A Serverless Full-Stack Blog Platform built with React, NestJS, and AWS, focusing on performance, minimalism, and a great writing experience.
 
 ## 📖 Project Overview
 
-This repository houses the source code for a personal blog platform designed to be scalable, cost-effective, and easy to maintain. It leverages a modern Serverless architecture on AWS.
+This repository houses the source code for a personal blog platform designed to be scalable, cost-effective, and easy to maintain. It leverages a modern Serverless architecture on AWS (Free Tier eligible).
 
-### Tech Stack
+### ✨ Key Features
+
+- **Public Features**:
+  - **Modern UI**: Minimalist design with Dark/Light mode support.
+  - **Responsive**: Optimized for all devices (Mobile, Tablet, Desktop).
+  - **SEO Optimized**: Dynamic meta tags and Open Graph support.
+  - **High Performance**: Static assets served via CDN.
+
+- **Admin/Author Features**:
+  - **Secure Authentication**: JWT-based login system.
+  - **Rich Text Editor**: Integrated Tiptap editor with support for formatting, lists, and more.
+  - **Image Uploads**: Drag-and-drop image uploads directly to S3 (Cover images & Post content).
+  - **Draft System**: Write now, publish later. Status management (`DRAFT`/`PUBLISHED`).
+  - **Dashboard**: Manage all posts from a centralized admin panel.
+
+### 🛠 Tech Stack
 
 | Component    | Technology      | Details                                                                              |
 | ------------ | --------------- | ------------------------------------------------------------------------------------ |
-| **Frontend** | React 19 + Vite | Typescript, TailwindCSS v4, Framer Motion. Hosted on S3 + CloudFront.                |
+| **Frontend** | React 19 + Vite | Typescript, TailwindCSS v4, Framer Motion, Tiptap Editor.                            |
 | **Backend**  | NestJS          | NodeJS runtime, wrapped in `serverless-express`. hosted on AWS Lambda + API Gateway. |
 | **Database** | DynamoDB        | NoSQL database for flexible content storage.                                         |
+| **Storage**  | AWS S3          | Hosting for frontend assets and user-uploaded media (images).                        |
+| **Auth**     | JWT + Passport  | Secure stateless authentication.                                                     |
 | **Infra**    | Terraform       | Infrastructure as Code (IaC) for AWS resources.                                      |
-| **CI/CD**    | GitHub Actions  | Automated build and deployment pipelines.                                            |
-
----
-
-## ✨ Functionalities
-
-### Public Features
-
-- **Blog Listing**: View a list of published blog posts.
-- **Blog Detail**: Read individual blog posts rendered from Markdown.
-- **Responsive Design**: optimized for mobile and desktop.
-
-### Admin Features
-
-- **Secure Authentication**: Secret-key based login for admin access.
-- **Markdown Editor**: Create and edit posts with a rich editor.
-- **Status Management**: Save posts as `DRAFT` or publish them as `PUBLISHED`.
-- **Image Upload**: Upload images directly to S3.
 
 ---
 
 ## 🏗️ Architecture
 
-### System Architecture
-
-```mermaid
-graph TD
-    User((User))
-
-    subgraph "AWS Cloud"
-        CF[CloudFront CDN]
-        S3Web[S3 Bucket (Frontend)]
-        APIGW[API Gateway]
-        Lambda[Lambda Function (NestJS)]
-        DDB[(DynamoDB)]
-        S3Media[S3 Bucket (Uploads)]
-    end
-
-    User -->|HTTPS| CF
-    CF --> S3Web
-    User -->|API Calls| APIGW
-    APIGW --> Lambda
-    Lambda --> DDB
-    Lambda --> S3Media
-```
-
-### Publishing Flow
-
-```mermaid
-sequenceDiagram
-    actor Admin
-    participant Frontend
-    participant API as API Gateway/Lambda
-    participant DB as DynamoDB
-    participant S3 as S3 Bucket
-
-    Admin->>Frontend: Writes Blog Post
-    Frontend->>API: POST /blogs (Content + status=PUBLISHED)
-    API->>API: Validate Admin Secret
-    API->>DB: Save Blog Record
-    DB-->>API: Success
-    API-->>Frontend: 201 Created
-    Frontend-->>Admin: Show Success Message
-```
+For detailed architectural diagrams and data flow, please refer to [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ---
 
@@ -88,6 +47,7 @@ sequenceDiagram
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - [AWS CLI](https://aws.amazon.com/cli/) configured with your credentials.
 - [Terraform](https://www.terraform.io/) installed.
+- [Docker](https://www.docker.com/) (for local DynamoDB).
 
 ### 1. Backend Setup
 
@@ -100,12 +60,17 @@ sequenceDiagram
 2.  Create a `.env` file with the following content:
 
     ```env
+    PORT=3000
     AWS_REGION=ap-southeast-1
+    AWS_S3_BUCKET_NAME=your-s3-bucket-name
     DYNAMODB_ENDPOINT=http://localhost:8000
     BLOG_TABLE_NAME=Blogs
+    USERS_TABLE_NAME=Users
+    JWT_SECRET=your-super-secret-jwt-key
+
+    # For local development (if not using AWS profile)
     AWS_ACCESS_KEY_ID=local
     AWS_SECRET_ACCESS_KEY=local
-    ADMIN_SECRET=local-development-secret
     ```
 
 3.  Install dependencies:
@@ -114,133 +79,107 @@ sequenceDiagram
     npm install
     ```
 
-4.  Run locally in development mode:
+4.  Start Local Infrastructure (DynamoDB):
 
     ```bash
     # Ensure Docker is running
     docker-compose up -d
-    ./scripts/setup-local-db.sh
 
-    # Access Local Database GUI
-    # Open http://localhost:8001 in your browser
+    # Initialize Tables
+    ./scripts/create-tables.sh
 
-    npm run start:dev
+    # (Optional) Seed Admin User
+    node scripts/seed-admin.js
     ```
 
----
-
-## 🧪 Testing
-
-### 1. Automated Tests (Backend)
-
-The backend includes both Unit and End-to-End (e2e) tests.
-
-```bash
-cd backend
-
-# Run Unit Tests
-npm run test
-
-# Run E2E Tests
-# Ensure your local DynamoDB is running first!
-npm run test:e2e
-```
-
-### 2. Manual API Testing (cURL / Postman)
-
-You can test the running local API at `http://localhost:3000`.
-
-**Create a Blog Post:**
-
-```bash
-curl -X POST http://localhost:3000/blogs \
-  -H "Content-Type: application/json" \
-  -H "x-admin-secret: your_secret_key" \
-  -d '{
-    "title": "My First Post",
-    "content": "Hello World!",
-    "status": "PUBLISHED"
-  }'
-```
-
-**Get All Blogs:**
-
-```bash
-curl http://localhost:3000/blogs
-```
+5.  Run Backend:
+    ```bash
+    npm run start:dev
+    ```
+    API will be available at `http://localhost:3000`. Swagger docs at `http://localhost:3000/api`.
 
 ### 2. Frontend Setup
 
-```bash
-cd frontend
-npm install
+1.  Navigate to `frontend` directory:
 
-# Create a .env file
-echo "VITE_API_URL=http://localhost:3000" > .env
+    ```bash
+    cd frontend
+    ```
 
-# Run locally
-npm run dev
-```
+2.  Install dependencies:
 
-### 3. Infrastructure Setup (Terraform)
+    ```bash
+    npm install
+    ```
 
-```bash
-cd terraform
+3.  Create a `.env` file:
 
-# Initialize Terraform
-terraform init
+    ```env
+    VITE_API_URL=http://localhost:3000
+    ```
 
-# Review changes
-terraform plan
-
-# Apply changes (deploys resources to AWS)
-terraform apply
-```
+4.  Run locally:
+    ```bash
+    npm run dev
+    ```
+    Frontend will be available at `http://localhost:5173`.
 
 ---
 
 ## 📦 Deployment
 
-This repository uses **GitHub Actions** for automated deployments.
+This repository handles deployment via **GitHub Actions** (or can be deployed manually via Terraform).
 
-### Workflow
+### Infrastructure (Terraform)
 
-The deployment is split based on the directory changed:
+1.  Navigate to `terraform/`:
+    ```bash
+    cd terraform
+    terraform init
+    terraform apply
+    ```
+    This will provision:
+    - DynamoDB Tables (`Blogs`, `Users`)
+    - S3 Bucket (for Media & Frontend)
+    - Lambda Function & API Gateway
+    - CloudFront Distribution
 
-1. **Frontend Changes** (`frontend/**`):
-   - Builds the Vite app.
-   - Syncs `dist/` folder to the S3 bucket.
-   - Invalidates CloudFront cache.
+### CI/CD Workflow
 
-2. **Backend Changes** (`backend/**`):
-   - Builds the NestJS app.
-   - Zips the artifact.
-   - Updates the AWS Lambda function code.
+- **Push to `main`**: Triggers deployment.
+- **Backend Changes**: Re-bundles Lambda code.
+- **Frontend Changes**: Builds React app and syncs to S3.
 
-### Required GitHub Secrets
+**Required Secrets in GitHub:**
 
-To enable deployment, configure these secrets in your repository settings:
-
-- `AWS_ACCESS_KEY_ID`: IAM User with permissions for S3, Lambda, and CloudFront.
-- `AWS_SECRET_ACCESS_KEY`: Secret key for the IAM user.
-- `AWS_REGION`: Target AWS Region (e.g., `ap-southeast-1`).
-- `BACKEND_FUNCTION_NAME`: Name of the Lambda function (from Terraform output).
-- `FRONTEND_BUCKET_NAME`: Name of the S3 bucket for frontend (from Terraform output).
-- `CLOUDFRONT_DISTRIBUTION_ID`: ID of the CloudFront distribution.
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_REGION`
+- `BACKEND_FUNCTION_NAME`
+- `FRONTEND_BUCKET_NAME`
+- `CLOUDFRONT_DISTRIBUTION_ID`
 
 ---
 
-## 👩‍💻 New Developer Guide
+## 🔒 Post-Installation (First Login)
 
-Welcome to the team! Here is how to start your Day 1:
+1.  After setting up the backend (local or cloud), you need an admin account.
+2.  If running locally, use `node scripts/seed-admin.js` to create a default user (`admin` / `password`).
+3.  Navigate to `/login` on the frontend.
+4.  Log in and start writing!
 
-1. **Clone the repo**: `git clone <repo-url>`
-2. **Check the Infra**: Ask a team member for the `terraform.tfstate` location or ensure you have access to the remote state. If starting fresh, run `terraform apply` in the `terraform/` directory to create your own dev environment.
-3. **Configure Local Env**:
-   - Get the API Gateway URL from Terraform outputs (`terraform output api_endpoint`).
-   - Set `VITE_API_URL` in `frontend/.env` to that URL (or your local backend URL).
-4. **Start Coding**:
-   - Run `npm run dev` in `frontend/` to work on UI.
-   - Run `npm run start:dev` in `backend/` to work on API logic.
+---
 
-> **Tip**: Since the backend is Serverless, running it locally (`npm run start:dev`) works like a standard NestJS app. You don't need to emulate Lambda locally for most logic dev.
+## 🧪 Testing
+
+```bash
+# Backend Tests
+cd backend
+npm run test      # Unit tests
+npm run test:e2e  # End-to-end tests
+```
+
+---
+
+**Developed by Khoi Tran**
+_Software Engineer | Tech Enthusiast_

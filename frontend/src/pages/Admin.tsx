@@ -12,6 +12,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { PageTransition } from '@/components/PageTransition';
 import { PlusCircle, Pencil, Trash2, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
+import { SEO } from '@/components/SEO';
 
 export function Admin() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -35,22 +37,23 @@ export function Admin() {
   }, [navigate]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure?')) return;
-    try {
-      await api.deleteBlog(id);
-      setBlogs(blogs.filter((b) => b.id !== id));
-    } catch (err) {
-      alert('Failed to delete: ' + err);
-    }
+    // Custom confirm dialog or just browser confirm for now
+    // Toast promise is good too
+    toast.promise(api.deleteBlog(id), {
+      loading: 'Deleting...',
+      success: () => {
+        setBlogs(blogs.filter((b) => b.id !== id));
+        return 'Post deleted';
+      },
+      error: 'Failed to delete post',
+    });
   };
 
-  const handleLogout = () => {
-    api.logout();
-    navigate('/login');
-  };
+  // Logout moved to Layout
 
   return (
     <PageTransition>
+      <SEO title="Dashboard" />
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
@@ -58,9 +61,6 @@ export function Admin() {
             <p className="text-muted-foreground">Manage your blog posts.</p>
           </div>
           <div className="flex gap-4">
-            <Button variant="outline" onClick={handleLogout}>
-              Logout
-            </Button>
             <Button asChild>
               <Link to="/admin/new">
                 <PlusCircle className="mr-2 h-4 w-4" />

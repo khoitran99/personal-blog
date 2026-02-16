@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import Markdown from 'react-markdown';
+import DOMPurify from 'dompurify';
 import { api, type Blog } from '../api';
 import { PageTransition } from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
+import { SEO } from '@/components/SEO';
 
 export function BlogDetail() {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +41,12 @@ export function BlogDetail() {
 
   return (
     <PageTransition>
+      {blog && (
+        <SEO
+          title={blog.title}
+          description={blog.content.slice(0, 150).replace(/<[^>]*>?/gm, '')}
+        />
+      )}
       <article className="max-w-3xl mx-auto space-y-8 pb-20">
         <Button variant="ghost" className="pl-0 hover:pl-2 transition-all" asChild>
           <Link to="/" className="text-muted-foreground hover:text-foreground">
@@ -49,8 +56,12 @@ export function BlogDetail() {
         </Button>
 
         {blog.coverImage && (
-          <div className="aspect-video w-full overflow-hidden rounded-lg border bg-muted">
-            <img src={blog.coverImage} alt={blog.title} className="h-full w-full object-cover" />
+          <div className="w-full overflow-hidden rounded-lg border bg-muted flex justify-center bg-black/5">
+            <img
+              src={blog.coverImage}
+              alt={blog.title}
+              className="w-auto h-auto max-h-[300px] object-contain"
+            />
           </div>
         )}
 
@@ -62,6 +73,8 @@ export function BlogDetail() {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
                 })}
               </time>
             </div>
@@ -84,9 +97,10 @@ export function BlogDetail() {
           )}
         </div>
 
-        <div className="prose prose-zinc dark:prose-invert max-w-none prose-lg prose-headings:font-bold prose-headings:tracking-tight">
-          <Markdown>{blog.content}</Markdown>
-        </div>
+        <div
+          className="prose prose-zinc dark:prose-invert max-w-none prose-lg prose-headings:font-bold prose-headings:tracking-tight [&_img]:rounded-md [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:mb-4 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:mb-3 [&_h3]:text-2xl [&_h3]:font-bold [&_h3]:mb-2 [&_p]:mb-4"
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.content) }}
+        />
       </article>
     </PageTransition>
   );

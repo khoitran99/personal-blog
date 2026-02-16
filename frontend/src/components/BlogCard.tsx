@@ -34,7 +34,7 @@ export function BlogCard({ blog }: { blog: Blog }) {
         </CardHeader>
         <CardContent className="p-6 pt-0">
           <p className="line-clamp-3 text-muted-foreground leading-relaxed">
-            {blog.content.slice(0, 150)}...
+            {blog.content.replace(/<[^>]*>?/gm, '').slice(0, 150)}...
           </p>
         </CardContent>
         {blog.tags && blog.tags.length > 0 && (

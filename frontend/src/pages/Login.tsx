@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageTransition } from '@/components/PageTransition';
+import { SEO } from '@/components/SEO';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -31,6 +32,7 @@ export function Login() {
 
   return (
     <PageTransition>
+      <SEO title="Login" />
       <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]">
         <Card className="w-full max-w-sm">
           <CardHeader className="text-center">
