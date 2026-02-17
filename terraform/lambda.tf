@@ -20,8 +20,10 @@ resource "aws_lambda_function" "api_lambda" {
   environment {
     variables = {
       BLOG_TABLE_NAME    = aws_dynamodb_table.blogs_table.name
+      USERS_TABLE_NAME   = aws_dynamodb_table.users_table.name
       AWS_S3_BUCKET_NAME = aws_s3_bucket.uploads_bucket.id
-      ADMIN_SECRET       = "change_me_in_prod"
+      ADMIN_SECRET       = "change_me_in_prod" # Deprecated but kept for backward compatibility if needed
+      JWT_SECRET         = var.jwt_secret
     }
   }
 }
@@ -63,7 +65,10 @@ resource "aws_iam_role_policy" "lambda_dynamodb_s3" {
           "dynamodb:Scan",
           "dynamodb:Query"
         ]
-        Resource = aws_dynamodb_table.blogs_table.arn
+        Resource = [
+          aws_dynamodb_table.blogs_table.arn,
+          aws_dynamodb_table.users_table.arn
+        ]
       },
       {
         Effect = "Allow"

@@ -12,16 +12,16 @@ graph TD
     Admin((Admin/Author))
 
     subgraph "Frontend Layer"
-        SPA[React SPA (Vite)]
+        SPA["React SPA (Vite)"]
     end
 
     subgraph "AWS Cloud"
         CF[CloudFront CDN]
-        S3Frontend[S3 Bucket (Static Assets)]
+        S3Frontend["S3 Bucket (Static Assets)"]
         APIGW[API Gateway]
         Lambda[NestJS Lambda]
-        DDB[(DynamoDB)]
-        S3Media[S3 Bucket (Uploads)]
+        DDB[DynamoDB]
+        S3Media["S3 Bucket (Uploads)"]
     end
 
     User -->|Visits| CF
@@ -29,7 +29,7 @@ graph TD
 
     CF --> S3Frontend
 
-    SPA -->|API Requests (REST)| APIGW
+    SPA -->|"API Requests (REST)"| APIGW
     APIGW --> Lambda
 
     Lambda -->|Store/Retrieve Content| DDB
