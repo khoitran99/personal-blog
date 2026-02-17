@@ -13,7 +13,7 @@ resource "aws_lambda_function" "api_lambda" {
   role             = aws_iam_role.lambda_exec.arn
   handler          = "dist/lambda.handler" # Check build output structure
   source_code_hash = fileexists("../backend.zip") ? filebase64sha256("../backend.zip") : null
-  runtime          = "nodejs18.x"
+  runtime          = "nodejs20.x"
   timeout          = 10
   memory_size      = 512
 
