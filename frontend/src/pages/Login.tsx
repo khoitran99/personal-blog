@@ -23,8 +23,12 @@ export function Login() {
     try {
       await api.login(email, password);
       navigate('/admin');
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message || 'Login failed');
+      } else {
+        setError('Login failed');
+      }
     } finally {
       setLoading(false);
     }
