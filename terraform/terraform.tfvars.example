@@ -1,0 +1,4 @@
+# Copy this file to 'terraform.tfvars' and replace the value below.
+# DO NOT commit 'terraform.tfvars' to version control.
+
+jwt_secret = "replace-with-your-secure-jwt-secret-here"
