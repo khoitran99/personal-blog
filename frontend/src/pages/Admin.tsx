@@ -20,12 +20,6 @@ export function Admin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = api.getToken();
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     api
       .getBlogs()
       .then(setBlogs)

@@ -9,6 +9,7 @@ import { Login } from './pages/Login';
 import { Toaster } from '@/components/ui/sonner';
 
 import { HelmetProvider } from 'react-helmet-async';
+import { PrivateRoute } from './components/PrivateRoute';
 
 function App() {
   return (
@@ -20,9 +21,11 @@ function App() {
               <Route index element={<Home />} />
               <Route path="login" element={<Login />} />
               <Route path="blog/:id" element={<BlogDetail />} />
-              <Route path="admin" element={<Admin />} />
-              <Route path="admin/new" element={<Editor />} />
-              <Route path="admin/edit/:id" element={<Editor />} />
+              <Route element={<PrivateRoute />}>
+                <Route path="admin" element={<Admin />} />
+                <Route path="admin/new" element={<Editor />} />
+                <Route path="admin/edit/:id" element={<Editor />} />
+              </Route>
             </Route>
           </Routes>
           <Toaster />
