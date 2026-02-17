@@ -15,7 +15,7 @@ function App() {
   return (
     <HelmetProvider>
       <BrowserRouter>
-        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />

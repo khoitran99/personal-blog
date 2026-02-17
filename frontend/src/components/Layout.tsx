@@ -9,8 +9,9 @@ export function Layout() {
     <div className="min-h-screen bg-background font-sans text-foreground selection:bg-foreground selection:text-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
         <div className="container flex h-16 items-center justify-between max-w-5xl mx-auto">
-          <Link to="/" className="text-xl font-bold tracking-tighter">
-            Khoi Tran's Blog
+          <Link to="/" className="flex items-center gap-2 text-xl font-bold tracking-tighter">
+            <span className="hidden md:block">Khoi Tran's Blog</span>
+            <img src="/favicon.svg" alt="Logo" className="block md:hidden h-8 w-8" />
           </Link>
           <nav className="flex items-center gap-6 text-sm font-medium">
             <Link to="/" className="transition-colors hover:text-foreground/60">
