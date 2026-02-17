@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DynamoDBService } from '../dynamodb/dynamodb.service';
-import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -11,12 +11,16 @@ export class UsersService {
 
   async findOne(email: string): Promise<User | undefined> {
     const result = await this.db.client.send(
-      new GetCommand({
+      new ScanCommand({
         TableName: this.tableName,
-        Key: { email },
+        FilterExpression: 'email = :email',
+        ExpressionAttributeValues: {
+          ':email': email,
+        },
+        Limit: 1,
       }),
     );
-    return result.Item as User;
+    return result.Items?.[0] as User;
   }
 
   async create(user: User): Promise<User> {
