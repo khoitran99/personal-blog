@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateBlogDto, BlogStatus } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
+import { Blog } from './entities/blog.entity';
 import { DynamoDBService } from '../dynamodb/dynamodb.service';
 import {
   PutCommand,
@@ -30,6 +31,7 @@ export class BlogService {
       ...createBlogDto,
       status: createBlogDto.status || BlogStatus.DRAFT,
       tags: createBlogDto.tags || [],
+      views: 0,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -75,7 +77,12 @@ export class BlogService {
         throw new NotFoundException(`Blog with ID ${id} not found`);
       }
 
-      return result.Item;
+      const blog = result.Item as unknown as Blog;
+
+      return {
+        ...blog,
+        views: blog.views || 0,
+      };
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
       console.error(error);
@@ -142,6 +149,25 @@ export class BlogService {
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Could not delete blog');
+    }
+  }
+
+  async incrementView(id: string) {
+    try {
+      await this.db.client.send(
+        new UpdateCommand({
+          TableName: this.tableName,
+          Key: { id },
+          UpdateExpression: 'SET #views = if_not_exists(#views, :start) + :inc',
+          ExpressionAttributeNames: { '#views': 'views' },
+          ExpressionAttributeValues: { ':inc': 1, ':start': 0 },
+        }),
+      );
+    } catch (error) {
+      console.error('Failed to increment view count', error);
+      // We can throw or silently fail. Given it's analytics, silent fail might be better
+      // but usually we want to know if DB is down.
+      // Nevertheless, let's just log for now as per previous logic.
     }
   }
 }

@@ -7,4 +7,5 @@ export class Blog {
   status: string;
   createdAt: string;
   updatedAt: string;
+  views: number;
 }

@@ -88,4 +88,11 @@ export class BlogController {
   remove(@Param('id') id: string) {
     return this.blogService.remove(id);
   }
+
+  @Post(':id/view')
+  @ApiOperation({ summary: 'Increment view count for a blog post' })
+  @ApiResponse({ status: 200, description: 'View count incremented.' })
+  incrementView(@Param('id') id: string) {
+    return this.blogService.incrementView(id);
+  }
 }
