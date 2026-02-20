@@ -64,7 +64,7 @@ export class BlogService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, incrementView = false) {
     try {
       const result = await this.db.client.send(
         new GetCommand({
@@ -79,9 +79,16 @@ export class BlogService {
 
       const blog = result.Item as unknown as Blog;
 
+      if (incrementView) {
+        // Fire and forget increment
+        this.incrementView(id).catch((e) =>
+          console.error('Failed to increment view asynchronously', e),
+        );
+      }
+
       return {
         ...blog,
-        views: blog.views || 0,
+        views: (blog.views || 0) + (incrementView ? 1 : 0),
       };
     } catch (error) {
       if (error instanceof NotFoundException) throw error;

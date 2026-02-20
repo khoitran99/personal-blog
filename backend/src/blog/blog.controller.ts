@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -52,8 +53,8 @@ export class BlogController {
   @ApiOperation({ summary: 'Get a blog post by id' })
   @ApiResponse({ status: 200, description: 'Return the blog post.' })
   @ApiResponse({ status: 404, description: 'Blog post not found.' })
-  findOne(@Param('id') id: string) {
-    return this.blogService.findOne(id);
+  findOne(@Param('id') id: string, @Query('increment') increment = 'false') {
+    return this.blogService.findOne(id, increment === 'true');
   }
 
   @Patch(':id')
@@ -87,12 +88,5 @@ export class BlogController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   remove(@Param('id') id: string) {
     return this.blogService.remove(id);
-  }
-
-  @Post(':id/view')
-  @ApiOperation({ summary: 'Increment view count for a blog post' })
-  @ApiResponse({ status: 200, description: 'View count incremented.' })
-  incrementView(@Param('id') id: string) {
-    return this.blogService.incrementView(id);
   }
 }
