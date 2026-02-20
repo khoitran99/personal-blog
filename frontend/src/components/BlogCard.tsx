@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Blog } from '../api';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye } from 'lucide-react';
 
 // Let's stick to standard HTML/Tailwind for tags for now if Badge isn't created.
 // Actually, I should probably create a Badge component as per ShadCN.
@@ -20,13 +21,19 @@ export function BlogCard({ blog }: { blog: Blog }) {
         )}
         <CardHeader className="space-y-2 p-6">
           <div className="flex gap-2 text-xs text-muted-foreground uppercase tracking-wider">
-            <time dateTime={blog.createdAt}>
-              {new Date(blog.createdAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <time dateTime={blog.createdAt}>
+                {new Date(blog.createdAt).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </time>
+              <div className="flex items-center gap-1">
+                <Eye className="h-3 w-3" />
+                <span>{blog.views || 0}</span>
+              </div>
+            </div>
           </div>
           <CardTitle className="text-xl font-bold leading-tight group-hover:underline decoration-2 underline-offset-4">
             {blog.title}

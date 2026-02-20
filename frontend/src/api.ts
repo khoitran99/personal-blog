@@ -9,6 +9,7 @@ export interface Blog {
   status: 'DRAFT' | 'PUBLISHED';
   createdAt: string;
   updatedAt: string;
+  views: number;
 }
 
 export interface CreateBlogDto {
@@ -65,8 +66,9 @@ export const api = {
     return res.json();
   },
 
-  getBlog: async (id: string): Promise<Blog> => {
-    const res = await fetch(`${API_URL}/blogs/${id}`);
+  getBlog: async (id: string, increment?: boolean): Promise<Blog> => {
+    const query = increment ? '?increment=true' : '';
+    const res = await fetch(`${API_URL}/blogs/${id}${query}`);
     if (!res.ok) throw new Error('Failed to fetch blog');
     return res.json();
   },

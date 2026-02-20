@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { api, type Blog } from '../api';
 import { PageTransition } from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Eye } from 'lucide-react';
 import { SEO } from '@/components/SEO';
 
 export function BlogDetail() {
@@ -13,10 +13,16 @@ export function BlogDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const hasFetched = useRef(false);
+
   useEffect(() => {
     if (!id) return;
+
+    const shouldIncrement = !hasFetched.current;
+    hasFetched.current = true;
+
     api
-      .getBlog(id)
+      .getBlog(id, shouldIncrement)
       .then(setBlog)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -60,14 +66,14 @@ export function BlogDetail() {
             <img
               src={blog.coverImage}
               alt={blog.title}
-              className="w-auto h-auto max-h-[300px] object-contain"
+              className="w-auto h-auto max-h-75 object-contain"
             />
           </div>
         )}
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <div className="flex gap-2 text-sm text-muted-foreground uppercase tracking-wider">
+            <div className="flex gap-4 text-sm text-muted-foreground uppercase tracking-wider items-center">
               <time dateTime={blog.createdAt}>
                 {new Date(blog.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
@@ -77,6 +83,10 @@ export function BlogDetail() {
                   minute: '2-digit',
                 })}
               </time>
+              <div className="flex items-center gap-1">
+                <Eye className="h-4 w-4" />
+                <span>{blog.views || 0} views</span>
+              </div>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tighter lg:text-5xl leading-tight">
               {blog.title}

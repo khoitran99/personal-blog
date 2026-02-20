@@ -1,9 +1,11 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, useLocation, useOutlet } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { ModeToggle } from './mode-toggle';
+import { cloneElement } from 'react';
 
 export function Layout() {
   const location = useLocation();
+  const element = useOutlet();
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground selection:bg-foreground selection:text-background">
@@ -44,7 +46,7 @@ export function Layout() {
       </header>
       <main className="container max-w-5xl mx-auto py-12 px-4 min-h-[calc(100vh-4rem)]">
         <AnimatePresence mode="wait">
-          <Outlet key={location.pathname} />
+          {element && cloneElement(element as React.ReactElement, { key: location.pathname })}
         </AnimatePresence>
       </main>
     </div>
