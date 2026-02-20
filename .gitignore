@@ -10,6 +10,7 @@ node_modules/
 dist/
 coverage/
 .npm/
+*.db
 
 # Environment
 .env
