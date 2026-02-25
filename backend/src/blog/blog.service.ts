@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { CreateBlogDto, BlogStatus } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
@@ -15,6 +16,7 @@ import {
   DeleteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
+import slugify from 'slugify';
 
 @Injectable()
 export class BlogService {
@@ -23,7 +25,8 @@ export class BlogService {
   constructor(private readonly db: DynamoDBService) {}
 
   async create(createBlogDto: CreateBlogDto) {
-    const id = uuidv4();
+    const id =
+      slugify(createBlogDto.title, { lower: true, strict: true }) || uuidv4();
     const timestamp = new Date().toISOString();
 
     const newBlog = {
@@ -41,10 +44,19 @@ export class BlogService {
         new PutCommand({
           TableName: this.tableName,
           Item: newBlog,
+          ConditionExpression: 'attribute_not_exists(id)',
         }),
       );
       return newBlog;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.name === 'ConditionalCheckFailedException'
+      ) {
+        throw new ConflictException(
+          'A blog post with this title already exists.',
+        );
+      }
       console.error(error);
       throw new InternalServerErrorException('Could not create blog post');
     }

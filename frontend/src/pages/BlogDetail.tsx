@@ -8,7 +8,7 @@ import { ChevronLeft, Eye } from 'lucide-react';
 import { SEO } from '@/components/SEO';
 
 export function BlogDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -16,17 +16,17 @@ export function BlogDetail() {
   const hasFetched = useRef(false);
 
   useEffect(() => {
-    if (!id) return;
+    if (!slug) return;
 
     const shouldIncrement = !hasFetched.current;
     hasFetched.current = true;
 
     api
-      .getBlog(id, shouldIncrement)
+      .getBlog(slug, shouldIncrement)
       .then(setBlog)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [slug]);
 
   if (loading)
     return (
@@ -63,11 +63,7 @@ export function BlogDetail() {
 
         {blog.coverImage && (
           <div className="w-full overflow-hidden rounded-lg border bg-muted flex justify-center bg-black/5">
-            <img
-              src={blog.coverImage}
-              alt={blog.title}
-              className="w-auto h-auto max-h-75 object-contain"
-            />
+            <img src={blog.coverImage} alt={blog.title} className="w-full h-auto object-cover" />
           </div>
         )}
 

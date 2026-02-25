@@ -20,7 +20,7 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="login" element={<Login />} />
-              <Route path="blog/:id" element={<BlogDetail />} />
+              <Route path="blog/:slug" element={<BlogDetail />} />
               <Route element={<PrivateRoute />}>
                 <Route path="admin" element={<Admin />} />
                 <Route path="admin/new" element={<Editor />} />
